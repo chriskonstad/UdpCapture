@@ -28,6 +28,7 @@
 #include <QtNetwork>
 #include <QString>
 #include <QByteArray>
+#include <QHostAddress>
 
 class UdpCapture : public QObject
 {
@@ -43,6 +44,7 @@ public slots:
     QString packetAsString();
     void setPort(unsigned int port);
     void closePort();
+    QHostAddress senderHostAddress() { return *m_host; }
 
 private slots:
     void processPacket();
@@ -50,6 +52,7 @@ private slots:
 private:
     QUdpSocket *m_socket;
     QString m_packet;
+    QHostAddress *m_host;
     
 };
 

@@ -6,6 +6,7 @@ UdpCapture::UdpCapture(unsigned int port, QObject *parent) :
     m_packet = "";
     m_socket = new QUdpSocket(this);
     m_socket->bind(port);
+    m_host = new QHostAddress;
     connect(m_socket, SIGNAL(readyRead()), this, SLOT(processPacket()));
 }
 
@@ -38,7 +39,7 @@ void UdpCapture::processPacket()
     do
     {
         datagram.resize(m_socket->pendingDatagramSize());
-        m_socket->readDatagram(datagram.data(), datagram.size());
+        m_socket->readDatagram(datagram.data(), datagram.size(), m_host);
     }
     while(m_socket->hasPendingDatagrams());
     m_packet = (tr("%1").arg(datagram.data()));
