@@ -34,25 +34,34 @@ class UdpCapture : public QObject
 {
     Q_OBJECT
 public:
-    explicit UdpCapture(unsigned int port, QObject *parent = 0);
+    explicit UdpCapture(unsigned int port, int timeoutMs,QObject *parent = 0);
     ~UdpCapture();
     
 signals:
     void packetProcessed(QString packetString);
+    void comLost();
+    void comGained();
+    void comChanged(bool status);
     
 public slots:
     QString packetAsString();
     void setPort(unsigned int port);
     void closePort();
     QHostAddress senderHostAddress() { return *m_host; }
+    QUdpSocket* socket() { return m_socket; }
+    bool comStatus() { return mComStatus; }
 
 private slots:
     void processPacket();
+    void comTimeout();
+    void comOk();
 
 private:
     QUdpSocket *m_socket;
     QString m_packet;
     QHostAddress *m_host;
+    QTimer *mComTimer;
+    bool mComStatus;
     
 };
 

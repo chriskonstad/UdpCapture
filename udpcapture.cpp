@@ -1,13 +1,23 @@
 #include "udpcapture.h"
 
-UdpCapture::UdpCapture(unsigned int port, QObject *parent) :
+UdpCapture::UdpCapture(unsigned int port, int timeoutMs, QObject *parent) :
     QObject(parent)
 {
     m_packet = "";
+
     m_socket = new QUdpSocket(this);
     m_socket->bind(port);
+
     m_host = new QHostAddress;
+
+    mComStatus = false;
+
+    mComTimer = new QTimer(this);
+    mComTimer->setInterval(timeoutMs);
+    mComTimer->start();
+
     connect(m_socket, SIGNAL(readyRead()), this, SLOT(processPacket()));
+    connect(mComTimer, SIGNAL(timeout()), this, SLOT(comTimeout()));
 }
 
 UdpCapture::~UdpCapture()
@@ -44,5 +54,29 @@ void UdpCapture::processPacket()
     while(m_socket->hasPendingDatagrams());
     m_packet = (tr("%1").arg(datagram.data()));
 
+    comOk();
+
     emit packetProcessed(m_packet);
+}
+
+void UdpCapture::comTimeout()
+{
+    if(mComStatus == true)
+    {
+        emit comLost();
+        mComStatus = false;
+        emit comChanged(mComStatus);
+    }
+}
+
+void UdpCapture::comOk()
+{
+    mComTimer->start();
+
+    if(mComStatus == false)
+    {
+        emit comGained();
+        mComStatus = true;
+        emit comChanged(mComStatus);
+    }
 }
